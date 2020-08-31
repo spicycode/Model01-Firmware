@@ -43,10 +43,10 @@
 #include "Kaleidoscope-LEDEffect-SolidColor.h"
 
 // Support for an LED mode that makes all the LEDs 'breathe'
-#include "Kaleidoscope-LEDEffect-Breathe.h"
+// #include "Kaleidoscope-LEDEffect-Breathe.h"
 
 // Support for an LED mode that makes a red pixel chase a blue pixel across the keyboard
-#include "Kaleidoscope-LEDEffect-Chase.h"
+// #include "Kaleidoscope-LEDEffect-Chase.h"
 
 // Support for LED modes that pulse the keyboard's LED in a rainbow pattern
 #include "Kaleidoscope-LEDEffect-Rainbow.h"
@@ -55,7 +55,7 @@
 #include "Kaleidoscope-LED-Stalker.h"
 
 // Support for an LED mode that prints the keys you press in letters 4px high
-#include "Kaleidoscope-LED-AlphaSquare.h"
+// #include "Kaleidoscope-LED-AlphaSquare.h"
 
 // Support for shared palettes for other plugins, like Colormap below
 #include "Kaleidoscope-LED-Palette-Theme.h"
@@ -89,7 +89,9 @@
   */
 
 enum { MACRO_VERSION_INFO,
-       MACRO_ANY
+       MACRO_ANY,
+       MACRO_LED_NEXT_PREV,
+       MACRO_LED_ON_AND_OFF
      };
 
 
@@ -313,6 +315,58 @@ static void anyKeyMacro(uint8_t keyState) {
     Kaleidoscope.hid().keyboard().pressKey(lastKey, toggledOn);
 }
 
+//Global int for the last LED mode (defaults to LEDOff, or whatever LED mode you have as 1st)
+static int lastLedMode = -1;
+
+/** turnLedsOnAndOff turns off LEDs, saving the current state, and turns them back on
+ *  expanded by aedifica from a sample algernon posted at 
+ *  https://community.keyboard.io/t/how-does-one-make-a-key-that-turns-the-leds-off/554/2 
+ *  with tips from merlin
+ */
+static void turnLedsOnAndOff(uint8_t key_state) {
+  if (keyToggledOn(key_state)) { /*when button is pressed*/
+    if (LEDControl.get_mode() != &LEDOff) { /* if LEDs are on */
+      lastLedMode = LEDControl.get_mode_index(); /* first, store the current mode */
+      LEDOff.activate(); /* then activate the "off" mode */
+    } else if(lastLedMode >= 0) {
+      LEDControl.set_mode(lastLedMode); /* set our LED to the last mode */
+    } else {
+      //Either do the first item on the list that isn't the Off mode...
+      //nextPrevLedMode(key_state, true);
+      //Or set it to something you want by default...
+      StalkerEffect.activate();
+      //Rainbow75_med.activate();
+      //LEDDigitalRainEffect.activate();
+    }
+  }
+}
+
+/* Toggle forward regularly, and toggle in reverse if shift is held */
+static void nextPrevLedMode(uint8_t key_state, bool skipOff) {
+  //Ensure a key was pressed
+  if (keyToggledOn(key_state)) {
+    if(
+      Kaleidoscope.hid().keyboard().wasModifierKeyActive(Key_LeftShift)
+      || Kaleidoscope.hid().keyboard().wasModifierKeyActive(Key_RightShift)
+    ) {
+      //shift held, so go backward
+      do {
+        LEDControl.prev_mode();
+      } while (
+        skipOff && LEDControl.get_mode() == &LEDOff
+      );
+    } else {
+      //No shift, so go forward
+      do {
+        LEDControl.next_mode();
+     } while (
+        skipOff && LEDControl.get_mode() == &LEDOff
+      );
+    }
+    //Set the last LED mode
+    lastLedMode = LEDControl.get_mode_index();
+  }
+}
 
 /** macroAction dispatches keymap events that are tied to a macro
     to that macro. It takes two uint8_t parameters.
@@ -336,7 +390,16 @@ const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
   case MACRO_ANY:
     anyKeyMacro(keyState);
     break;
+
+  case MACRO_LED_ON_AND_OFF:
+    turnLedsOnAndOff(keyState);
+    break;
+
+  case MACRO_LED_NEXT_PREV:
+    nextPrevLedMode(keyState, true);
+    break;
   }
+
   return MACRO_NONE;
 }
 
@@ -470,17 +533,17 @@ KALEIDOSCOPE_INIT_PLUGINS(
 
   // The chase effect follows the adventure of a blue pixel which chases a red pixel across
   // your keyboard. Spoiler: the blue pixel never catches the red pixel
-  LEDChaseEffect,
+  // LEDChaseEffect,
 
   // These static effects turn your keyboard's LEDs a variety of colors
   solidRed, solidOrange, solidYellow, solidGreen, solidBlue, solidIndigo, solidViolet,
 
   // The breathe effect slowly pulses all of the LEDs on your keyboard
-  LEDBreatheEffect,
+  // LEDBreatheEffect,
 
   // The AlphaSquare effect prints each character you type, using your
   // keyboard's LEDs as a display
-  AlphaSquareEffect,
+  // AlphaSquareEffect,
 
   // The stalker effect lights up the keys you've pressed recently
   StalkerEffect,
@@ -531,7 +594,7 @@ void setup() {
   NumPad.numPadLayer = NUMPAD;
 
   // We configure the AlphaSquare effect to use RED letters
-  AlphaSquare.color = CRGB(255, 0, 0);
+  // AlphaSquare.color = CRGB(255, 0, 0);
 
   // We set the brightness of the rainbow effects to 150 (on a scale of 0-255)
   // This draws more than 500mA, but looks much nicer than a dimmer effect
