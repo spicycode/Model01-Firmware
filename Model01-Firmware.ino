@@ -3,7 +3,7 @@
 // See "LICENSE" for license details
 
 #ifndef BUILD_INFORMATION
-#define BUILD_INFORMATION "locally built"
+#define BUILD_INFORMATION "spicycode local"
 #endif
 
 
@@ -49,7 +49,7 @@
 // #include "Kaleidoscope-LEDEffect-Chase.h"
 
 // Support for LED modes that pulse the keyboard's LED in a rainbow pattern
-#include "Kaleidoscope-LEDEffect-Rainbow.h"
+// #include "Kaleidoscope-LEDEffect-Rainbow.h"
 
 // Support for an LED mode that lights up the keys as you press them
 #include "Kaleidoscope-LED-Stalker.h"
@@ -331,12 +331,9 @@ static void turnLedsOnAndOff(uint8_t key_state) {
     } else if(lastLedMode >= 0) {
       LEDControl.set_mode(lastLedMode); /* set our LED to the last mode */
     } else {
-      //Either do the first item on the list that isn't the Off mode...
       //nextPrevLedMode(key_state, true);
       //Or set it to something you want by default...
       StalkerEffect.activate();
-      //Rainbow75_med.activate();
-      //LEDDigitalRainEffect.activate();
     }
   }
 }
@@ -395,9 +392,9 @@ const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
     turnLedsOnAndOff(keyState);
     break;
 
-  case MACRO_LED_NEXT_PREV:
-    nextPrevLedMode(keyState, true);
-    break;
+  /* case MACRO_LED_NEXT_PREV: */
+  /*   nextPrevLedMode(keyState, true); */
+  /*   break; */
   }
 
   return MACRO_NONE;
@@ -525,18 +522,18 @@ KALEIDOSCOPE_INIT_PLUGINS(
 
   // The rainbow effect changes the color of all of the keyboard's keys at the same time
   // running through all the colors of the rainbow.
-  LEDRainbowEffect,
+  // LEDRainbowEffect,
 
   // The rainbow wave effect lights up your keyboard with all the colors of a rainbow
   // and slowly moves the rainbow across your keyboard
-  LEDRainbowWaveEffect,
+  // LEDRainbowWaveEffect,
 
   // The chase effect follows the adventure of a blue pixel which chases a red pixel across
   // your keyboard. Spoiler: the blue pixel never catches the red pixel
   // LEDChaseEffect,
 
   // These static effects turn your keyboard's LEDs a variety of colors
-  solidRed, solidOrange, solidYellow, solidGreen, solidBlue, solidIndigo, solidViolet,
+  // solidRed, solidOrange, solidYellow, solidGreen, solidBlue, solidIndigo, solidViolet,
 
   // The breathe effect slowly pulses all of the LEDs on your keyboard
   // LEDBreatheEffect,
@@ -598,8 +595,8 @@ void setup() {
 
   // We set the brightness of the rainbow effects to 150 (on a scale of 0-255)
   // This draws more than 500mA, but looks much nicer than a dimmer effect
-  LEDRainbowEffect.brightness(150);
-  LEDRainbowWaveEffect.brightness(150);
+  // LEDRainbowEffect.brightness(150);
+  // LEDRainbowWaveEffect.brightness(150);
 
   // Set the action key the test mode should listen for to Left Fn
   HardwareTestMode.setActionKey(R3C6);
